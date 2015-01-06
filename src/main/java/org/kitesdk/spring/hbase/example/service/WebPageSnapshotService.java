@@ -15,6 +15,8 @@
  */
 package org.kitesdk.spring.hbase.example.service;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,8 +66,8 @@ public class WebPageSnapshotService {
    * @return The WebPageSnapshotMeta for the page that we snapshotted.
    * @throws IOException
    */
-  public WebPageSnapshotMeta takeSnapshot(String url) throws IOException {
-    WebPageSnapshotModel webPageSnapshotModel = fetchWebPage(url);
+  public WebPageSnapshotMeta takeSnapshot(String url, String contentKey) throws IOException {
+    WebPageSnapshotModel webPageSnapshotModel = fetchWebPage(url, contentKey);
     if (!webPageSnapshotModel.getUrl().equals(url)) {
       // Url is different, so must have redirected. Store the redirect model
       WebPageRedirectModel redirectModel = WebPageRedirectModel.newBuilder()
@@ -336,7 +338,7 @@ public class WebPageSnapshotService {
    * @throws IOException
    *           Thrown if there's an issue fetching the web page.
    */
-  private WebPageSnapshotModel fetchWebPage(String url) throws IOException {
+  private WebPageSnapshotModel fetchWebPage(String url, String contentKey) throws IOException {
     long fetchTime = System.currentTimeMillis();
     Connection connection = Jsoup.connect(url);
     Response response = connection.execute();
@@ -355,7 +357,9 @@ public class WebPageSnapshotService {
         .setSize(doc.html().length()).setFetchedAt(fetchTime)
         .setFetchTimeMs(timeToFetch).setTitle(title)
         .setDescription(description).setKeywords(keywords)
-        .setOutlinks(outlinks).setContent(doc.html()).build();
+        .setOutlinks(outlinks).setContentKey(contentKey)
+        .setContent(ImmutableMap.of(contentKey, doc.html()))
+        .build();
   }
 
   /**

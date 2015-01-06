@@ -11,7 +11,7 @@
   <parent> 
     <groupId>org.kitesdk</groupId>
     <artifactId>kite-app-parent-cdh5</artifactId>
-    <version>0.16.1-SNAPSHOT</version>
+    <version>0.17.0</version>
   </parent>
 
   <profiles>
@@ -95,21 +95,21 @@
     <dependency>
       <groupId>org.kitesdk</groupId>
       <artifactId>kite-hadoop-cdh5-dependencies</artifactId>
-      <version>0.16.1-SNAPSHOT</version>
+      <version>0.17.0</version>
       <type>pom</type>
       <scope>compile</scope> <!-- provide Hadoop dependencies -->
     </dependency>
     <dependency>
       <groupId>org.kitesdk</groupId>
       <artifactId>kite-hbase-cdh5-dependencies</artifactId>
-      <version>0.16.1-SNAPSHOT</version>
+      <version>0.17.0</version>
       <type>pom</type>
       <scope>compile</scope> <!-- provide HBase dependencies -->
     </dependency>
     <dependency>
       <groupId>org.kitesdk</groupId>
       <artifactId>kite-hadoop-cdh5-test-dependencies</artifactId>
-      <version>0.16.1-SNAPSHOT</version>
+      <version>0.17.0</version>
       <type>pom</type>
       <exclusions>
         <exclusion>
@@ -121,7 +121,7 @@
     <dependency>
       <groupId>org.kitesdk</groupId>
       <artifactId>kite-hbase-cdh5-test-dependencies</artifactId>
-      <version>0.16.1-SNAPSHOT</version>
+      <version>0.17.0</version>
       <type>pom</type>
       <exclusions>
         <exclusion>
@@ -133,7 +133,7 @@
     <dependency>
       <groupId>org.kitesdk</groupId>
       <artifactId>kite-minicluster</artifactId>
-      <version>0.16.1-SNAPSHOT</version>
+      <version>0.17.0</version>
       <exclusions>
         <exclusion>
           <artifactId>servlet-api</artifactId>

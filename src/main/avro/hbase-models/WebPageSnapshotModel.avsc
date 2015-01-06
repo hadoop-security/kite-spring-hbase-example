@@ -49,11 +49,16 @@
       "name": "outlinks",
       "type": { "type": "array", "items": "string" },
       "mapping": { "type": "column", "value": "meta:outlinks" }
-    },    
+    },
+    {
+      "name": "contentKey",
+      "type": "string",
+      "mapping": { "type": "column", "value": "meta:contentKey" }
+    },
     {
       "name": "content",
-      "type": "string",
-      "mapping": { "type": "column", "value": "content:content" }
+      "type": { "type": "map", "values": "string" },
+      "mapping": { "type": "keyAsColumn", "family": "content" }
     }
   ]
 }

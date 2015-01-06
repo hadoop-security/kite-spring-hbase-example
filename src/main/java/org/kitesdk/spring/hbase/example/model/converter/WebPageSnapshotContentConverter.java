@@ -31,7 +31,7 @@ public class WebPageSnapshotContentConverter implements
     WebPageSnapshotContent content = new WebPageSnapshotContent();
     content.setUrl(model.getUrl());
     content.setFetchedAt(model.getFetchedAt());
-    content.setContent(model.getContent());
+    content.setContent(model.getContent().get(model.getContentKey()));
     return content;
   }
 

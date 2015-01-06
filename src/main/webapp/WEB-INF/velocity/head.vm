@@ -1,7 +1,7 @@
 #set ($contextPath = "")
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<title>Cloudera CSI</title>
+	<title>Webpage Snapshot Demo</title>
 	<link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/reset.css" />
 	<link rel="stylesheet" type="text/css" href="${contextPath}/resources/css/snapshot.css" />
 	<script type="text/javascript" src="${contextPath}/resources/javascript/jquery-1.11.1.min.js"> </script>

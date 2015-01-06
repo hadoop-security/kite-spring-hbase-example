@@ -51,7 +51,7 @@ public class WebPageSnapshotController {
   @ResponseBody
   public WebPageSnapshotMeta takeSnapshot(@RequestParam("url") String url)
       throws IOException {
-    return webPageSnapshotService.takeSnapshot(url);
+    return webPageSnapshotService.takeSnapshot(url, "public");
   }
 
   @RequestMapping(value = "/meta", method = RequestMethod.GET)
