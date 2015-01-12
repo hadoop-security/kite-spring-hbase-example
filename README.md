@@ -35,16 +35,16 @@ HBase cluster with the necessary security settings. In particular, you need to:
 2. Enable Kerberos authentication for HBase
 3. Enable HBase table ACLs
 4. Create the HBase datasets:
-    ```bash
-    kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpagesnapshots.WebPageSnapshotModel -s src/main/avro/hbase-models/WebPageSnapshotModel.avsc
-    kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpageredirects.WebPageRedirectModel -s src/main/avro/hbase-models/WebPageRedirectModel.avsc
-    ```
+
+        kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpagesnapshots.WebPageSnapshotModel -s src/main/avro/hbase-models/WebPageSnapshotModel.avsc
+        kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpageredirects.WebPageRedirectModel -s src/main/avro/hbase-models/WebPageRedirectModel.avsc
+
 5. Grant Alice and Bob access to their columns:
-    ```bash
-    hbase shell
-    grant 'alice', 'RW', 'webpagesnapshots', 'content', 'alice'
-    grant 'bob', 'RW', 'webpagesnapshots', 'content', 'bob'
-    ```
+
+        hbase shell
+        grant 'alice', 'RW', 'webpagesnapshots', 'content', 'alice'
+        grant 'bob', 'RW', 'webpagesnapshots', 'content', 'bob'
+
 6. Step six
 
 Building
