@@ -15,6 +15,7 @@
  */
 package org.kitesdk.spring.hbase.example.controller;
 
+import com.sun.jersey.core.util.Base64;
 import java.io.IOException;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,46 +51,65 @@ public class WebPageSnapshotController {
 
   @RequestMapping(value = "/takeSnapshot", method = RequestMethod.POST)
   @ResponseBody
-  public WebPageSnapshotMeta takeSnapshot(@RequestParam("url") String url)
+  public WebPageSnapshotMeta takeSnapshot(@RequestParam("url") String url,
+      @RequestParam("public") boolean isPublic,
+      @RequestHeader("Authorization") String authorization)
       throws IOException {
-    return webPageSnapshotService.takeSnapshot(url, "public");
+    String user = getUser(authorization);
+    String contentKey = isPublic ? "public" : user;
+    return webPageSnapshotService.takeSnapshot(url, contentKey, user);
   }
 
   @RequestMapping(value = "/meta", method = RequestMethod.GET)
   @ResponseBody
   public WebPageSnapshotMeta getMostRecentMeta(@RequestParam("url") String url,
-      @RequestParam("ts") long ts) {
-    return webPageSnapshotService.getWebPageSnapshotMeta(url, ts);
+      @RequestParam("ts") long ts,
+      @RequestHeader("Authorization") String authorization) throws IOException {
+    String user = getUser(authorization);
+    return webPageSnapshotService.getWebPageSnapshotMeta(url, ts, user);
   }
 
   @RequestMapping(value = "/mostRecentMeta", method = RequestMethod.GET)
   @ResponseBody
-  public WebPageSnapshotMeta getMostRecentMeta(@RequestParam("url") String url) {
-    return webPageSnapshotService.getWebPageSnapshotMeta(url);
+  public WebPageSnapshotMeta getMostRecentMeta(@RequestParam("url") String url,
+      @RequestHeader("Authorization") String authorization) throws IOException {
+    String user = getUser(authorization);
+    return webPageSnapshotService.getWebPageSnapshotMeta(url, user);
   }
 
   @RequestMapping(value = "/content", method = RequestMethod.GET)
   @ResponseBody
   public WebPageSnapshotContent getMostRecentContent(
-      @RequestParam("url") String url, @RequestParam("ts") long ts) {
-    return webPageSnapshotService.getWebPageSnapshotContent(url, ts);
+      @RequestParam("url") String url, @RequestParam("ts") long ts,
+      @RequestHeader("Authorization") String authorization) throws IOException {
+    String user = getUser(authorization);
+    return webPageSnapshotService.getWebPageSnapshotContent(url, ts, user);
   }
 
   @RequestMapping(value = "/mostRecentContent", method = RequestMethod.GET)
   @ResponseBody
   public WebPageSnapshotContent getMostRecentContent(
-      @RequestParam("url") String url) {
-    return webPageSnapshotService.getWebPageSnapshotContent(url);
+      @RequestParam("url") String url,
+      @RequestHeader("Authorization") String authorization) throws IOException {
+    String user = getUser(authorization);
+    return webPageSnapshotService.getWebPageSnapshotContent(url, user);
   }
 
   @RequestMapping(value = "/snapshotTimestamps", method = RequestMethod.GET)
   @ResponseBody
-  public List<Long> getSnapshotTimestamps(@RequestParam("url") String url) {
-    return webPageSnapshotService.getSnapshotTimestamps(url);
+  public List<Long> getSnapshotTimestamps(@RequestParam("url") String url,
+      @RequestHeader("Authorization") String authorization) throws IOException {
+    String user = getUser(authorization);
+    return webPageSnapshotService.getSnapshotTimestamps(url, user);
   }
 
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Error fetching snapshot")
   @ExceptionHandler(HttpStatusException.class)
   public void httpStatusExceptionHandler() {
+  }
+
+  private String getUser(String authorization) {
+    String base64Credentials = authorization.substring("Basic".length()).trim();
+    return Base64.base64Decode(base64Credentials).split(":")[0];
   }
 }

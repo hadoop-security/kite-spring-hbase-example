@@ -58,6 +58,11 @@ public class WebPageSnapshotMeta {
   private List<String> keywords;
 
   /**
+   * The visibility of this snapshot (public or private)
+   */
+  private String visibility;
+
+  /**
    * The outlinks from this page
    */
   private List<String> outlinks;
@@ -192,6 +197,14 @@ public class WebPageSnapshotMeta {
    */
   public void setKeywords(List<String> keywords) {
     this.keywords = keywords;
+  }
+
+  public String getVisibility() {
+    return visibility;
+  }
+
+  public void setVisibility(String visibility) {
+    this.visibility = visibility;
   }
 
   /**

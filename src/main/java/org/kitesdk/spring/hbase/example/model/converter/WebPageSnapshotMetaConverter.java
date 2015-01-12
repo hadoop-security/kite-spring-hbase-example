@@ -36,6 +36,11 @@ public class WebPageSnapshotMetaConverter implements
     meta.setTitle(model.getTitle());
     meta.setDescription(model.getDescription());
     meta.setKeywords(model.getKeywords());
+
+    String contentKey = model.getContentKey();
+    meta.setVisibility(contentKey.equals("public") ? "public" :
+        "private (" + contentKey + ")");
+
     meta.setOutlinks(model.getOutlinks());
     return meta;
   }

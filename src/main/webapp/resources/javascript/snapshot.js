@@ -47,12 +47,13 @@ SNAPSHOT = {
 		$("#takeSnapshotBtn").click( function(){
 
 			var url = SNAPSHOT.getUrl();
+			var public = SNAPSHOT.getPublic();
 
 			SNAPSHOT.clearPage();
 
 			if( SNAPSHOT.validURL(url) ){
 
-				$.post("/takeSnapshot", { url: url }, function(data){
+				$.post("/takeSnapshot", { url: url, public: public }, function(data){
 					if (data != null){
 						SNAPSHOT.addWebPageMeta(url, data);
 						SNAPSHOT.setDivHeight();
@@ -176,6 +177,11 @@ SNAPSHOT = {
 			$("#urlTxtBox").val(url);
 		}
 		return url;
+	},
+
+	getPublic : function(){
+		var public = $("#publicChkBox");
+		return public.is(':checked');
 	},
 
 	validURL : function(url){

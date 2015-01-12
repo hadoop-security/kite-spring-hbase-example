@@ -260,6 +260,7 @@
         <configuration>
           <warSourceDirectory>${project.build.directory}/${project.build.finalName}</warSourceDirectory>
           <path>/</path>
+          <contextFile>src/main/tomcat/context.xml</contextFile>
         </configuration>
       </plugin>
     </plugins>

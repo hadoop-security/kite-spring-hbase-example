@@ -1,0 +1,4 @@
+<Context>
+  <Realm className="org.apache.catalina.realm.MemoryRealm"
+     pathname="../../src/main/tomcat/tomcat-users.xml" />
+</Context>

@@ -6,6 +6,7 @@
 		<h1>Webpage Snapshot Demo</h1>
 		<div id="urlForm" >
 			Enter a URL <input type="text" id="urlTxtBox" name="url" size="70" /> <input id="takeSnapshotBtn" type="button" value="Take Snapshot" /> <input id="viewSnapshotBtn" type="button" value="View Snapshot" />
+			<div>Make snapshot public? <input type="checkbox" id="publicChkBox" name="public" /></div>
 			<div class="infoMsg"></div>
 			<div class="warnMsg"></div>
 			<div class="errorMsg"></div>
