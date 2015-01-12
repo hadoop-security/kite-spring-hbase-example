@@ -19,8 +19,7 @@ Download the source code for this project by cloning the Git repository:
 Download the Kite SDK CLI tool:
 
     wget http://central.maven.org/maven2/org/kitesdk/kite-tools-cdh5/0.17.1/kite-tools-cdh5-0.17.1.tar.gz
-   ﻿tar -zxf kite-tools-cdh5-0.17.1.tar.gz
- 
+    tar -zxf kite-tools-cdh5-0.17.1.tar.gz
 
 Configuration
 =========================
