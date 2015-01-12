@@ -13,13 +13,13 @@ Download
 
 Download the source code for this project by cloning the Git repository:
 
- git clone ﻿https://github.com/hadoop-security/kite-spring-hbase-example.git
- cd kite-spring-hbase-example
+    git clone ﻿https://github.com/hadoop-security/kite-spring-hbase-example.git
+    cd kite-spring-hbase-example
 
 Download the Kite SDK CLI tool:
 
- wget http://central.maven.org/maven2/org/kitesdk/kite-tools-cdh5/0.17.1/kite-tools-cdh5-0.17.1.tar.gz
-﻿tar -zxf kite-tools-cdh5-0.17.1.tar.gz
+    wget http://central.maven.org/maven2/org/kitesdk/kite-tools-cdh5/0.17.1/kite-tools-cdh5-0.17.1.tar.gz
+   ﻿tar -zxf kite-tools-cdh5-0.17.1.tar.gz
  
 
 Configuration
@@ -33,14 +33,14 @@ HBase cluster with the necessary security settings. In particular, you need to:
 3. Enable HBase table ACLs
 4. Create the HBase datasets:
 
- kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpagesnapshots.WebPageSnapshotModel -s src/main/avro/hbase-models/WebPageSnapshotModel.avsc
- kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpageredirects.WebPageRedirectModel -s src/main/avro/hbase-models/WebPageRedirectModel.avsc
+    kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpagesnapshots.WebPageSnapshotModel -s src/main/avro/hbase-models/WebPageSnapshotModel.avsc
+    kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpageredirects.WebPageRedirectModel -s src/main/avro/hbase-models/WebPageRedirectModel.avsc
 
 5. Grant Alice and Bob access to their columns:
 
- hbase shell
-﻿grant 'alice', 'RW', 'webpagesnapshots', 'content', 'alice'
-﻿grant 'bob', 'RW', 'webpagesnapshots', 'content', 'bob'
+    hbase shell
+   ﻿grant 'alice', 'RW', 'webpagesnapshots', 'content', 'alice'
+   ﻿grant 'bob', 'RW', 'webpagesnapshots', 'content', 'bob'
 
 Building
 =========================
@@ -59,7 +59,7 @@ file src/main/resources/hbase-prod.properties with the appropriate properties.
 
 You can build the production WAR file using the following command:
 
-  mvn -Pprod clean install
+     mvn -Pprod clean install
 
 Running
 ==========================
@@ -69,12 +69,12 @@ launches an in process Tomcat to run the app in (we have pretty high memory
 settings since not only is this running Tomcat, but it's also launching an
 HDFS and HBase cluster in the app):
 
-env MAVEN_OPTS="-Xmx2048m -XX:MaxPermSize=256m" mvn clean install tomcat7:run
+    env MAVEN_OPTS="-Xmx2048m -XX:MaxPermSize=256m" mvn clean install tomcat7:run
 
 Once launched, you can view the web application in your browser by going to
 the appropriate URL. For example:
 
-http://localhost:8080/home
+[http://localhost:8080/home](http://localhost:8080/home)
 
 Once there, you can take snapshots, and view older snapshots of web pages.
 
