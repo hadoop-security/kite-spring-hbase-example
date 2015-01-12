@@ -35,4 +35,14 @@
       </set>
     </property>
   </bean>
+
+  <bean id="applicationPrincipal" class="java.lang.String"
+        depends-on="hbasePropertyConfigurer">
+    <constructor-arg index="0" value="${application.kerberos.principal}"/>
+  </bean>
+
+  <bean id="applicationKeytab" class="java.lang.String"
+        depends-on="hbasePropertyConfigurer">
+    <constructor-arg index="0" value="${application.kerberos.keytab}"/>
+  </bean>
 </beans>

@@ -15,6 +15,7 @@
  */
 package org.kitesdk.spring.hbase.example.service;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.security.PrivilegedAction;
@@ -59,6 +60,35 @@ public class WebPageSnapshotService {
 
   @Autowired
   private ConversionService conversionService;
+
+  @Autowired
+  private String applicationPrincipal;
+
+  @Autowired
+  private String applicationKeytab;
+
+  @Autowired
+  public void kerberosLogin() throws IOException {
+
+    LOG.debug("application.kerberos.principal=" + applicationPrincipal);
+    LOG.debug("application.kerberos.keytab=" + applicationKeytab);
+
+    if (UserGroupInformation.isSecurityEnabled()) {
+      Preconditions.checkNotNull(applicationPrincipal,
+          "Setting the application.kerberos.principal in hbase-prod.properties "
+              + "is required when security is enabled.");
+
+      Preconditions.checkNotNull(applicationKeytab,
+          "Setting the application.kerberos.keytab in hbase-prod.properties is "
+              + "required when security is enabled.");
+
+      LOG.info("Logging in user {} using keytab {}.", new Object[] {
+          applicationPrincipal, applicationKeytab });
+
+      UserGroupInformation.loginUserFromKeytab(applicationPrincipal,
+          applicationKeytab);
+    }
+  }
 
   /**
    * Take a snapshot of an URL. This WebPageSnapshot is stored in HBase. Returns
