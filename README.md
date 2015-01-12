@@ -1,17 +1,51 @@
-kite-spring-hbase-example
+Hadoop Security - Interactive HBase Web Application Case Study
 =========================
 
-An example KiteSDK web application that uses Spring MVC and HBase.
-This application is a web caching app that can be used to fetch web pages and
-store their content in a local HBase cluster. The cached web page can be viewed,
-and metadata about that page, like size, time to fetch, outlinks can be queried.
-This application supports deployment to Redhat's OpenShift for development
-deploys.
+This case study is built on a modified [example Kite SDK web application]
+(https://github.com/kite-sdk/kite-spring-hbase-example) that uses Spring MVC
+and HBase.  This application is a web caching app that can be used to fetch web
+pages and store their content in a local HBase cluster. The cached web page can
+be viewed, and metadata about that page, like size, time to fetch, and outlinks
+can be queried.
+
+Download
+=========================
+
+Download the source code for this project by cloning the Git repository:
+
+ git clone ﻿https://github.com/hadoop-security/kite-spring-hbase-example.git
+ cd kite-spring-hbase-example
+
+Download the Kite SDK CLI tool:
+
+ wget http://central.maven.org/maven2/org/kitesdk/kite-tools-cdh5/0.17.1/kite-tools-cdh5-0.17.1.tar.gz
+﻿tar -zxf kite-tools-cdh5-0.17.1.tar.gz
+ 
+
+Configuration
+=========================
+
+Before building and deploying the application you need to configure your
+HBase cluster with the necessary security settings. In particular, you need to:
+
+1. Enable Kerberos authentication for Hadoop (HDFS and YARN)
+2. Enable Kerberos authentication for HBase
+3. Enable HBase table ACLs
+4. Create the HBase datasets:
+
+ kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpagesnapshots.WebPageSnapshotModel -s src/main/avro/hbase-models/WebPageSnapshotModel.avsc
+ kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:quickstart.cloudera:2181/webpageredirects.WebPageRedirectModel -s src/main/avro/hbase-models/WebPageRedirectModel.avsc
+
+5. Grant Alice and Bob access to their columns:
+
+ hbase shell
+﻿grant 'alice', 'RW', 'webpagesnapshots', 'content', 'alice'
+﻿grant 'bob', 'RW', 'webpagesnapshots', 'content', 'bob'
 
 Building
 =========================
 
-There are three build profiles in the application: dev, openshift, and prod.
+There are two build profiles in the application: dev and prod.
 
 The default build profile is dev, and in that mode, it will be built so that an
 in-process HBase cluster is launched and configured on startup. That cluster
@@ -19,13 +53,13 @@ will re-use the same data directory across restarts, so data remains persistent.
 This enables us to quickly build a web application on this framework without
 having to install a Hadoop and HBase for dev purposes.
 
-The openshift build profile is used by the OpenShift environment automatically.
-This is a development mode that also launches an in-process HBase cluster, but
-configures it in a way that makes it compatible with OpenShift's environment.
-
 The prod build profile will construct a WAR that won't launch an in-process
-HBase cluster on startup. One can configure the properties file
-src/main/resources/hbase-prod.properties with the appropriate HBase configs.
+HBase cluster on startup. Before deployment, you must modify the configuration 
+file src/main/resources/hbase-prod.properties with the appropriate properties.
+
+You can build the production WAR file using the following command:
+
+  mvn -Pprod clean install
 
 Running
 ==========================
@@ -44,12 +78,7 @@ http://localhost:8080/home
 
 Once there, you can take snapshots, and view older snapshots of web pages.
 
-Running in RedHat OpenShift
+Running in Production
 ===========================
 
-1. rhc app create snapshot https://raw.githubusercontent.com/kite-sdk/kite-minicluster-openshift-cartridge/master/metadata/manifest.yml jbossews-2.0 -g large
-2. rhc cartridge storage jbossews-2.0 --app snapshot --set 4
-3. cd snapshot
-4. git remote add upstream -m master git://github.com/kite-sdk/kite-spring-hbase-example.git
-5. git pull -s recursive -X theirs upstream master
-6. git push origin master
+Deploy the built WAR file (webapps/ROOT.war) to your production Tomcat instance.
