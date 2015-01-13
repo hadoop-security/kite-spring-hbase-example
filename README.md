@@ -70,28 +70,33 @@ the app.
         kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:<ZK HOSTS>:<ZK PORT>/webpagesnapshots.WebPageSnapshotModel -s src/main/avro/hbase-models/WebPageSnapshotModel.avsc
         kite-tools-cdh5-0.17.1/bin/kite-dataset create dataset:hbase:<ZK HOSTS>:<ZK PORT>/webpageredirects.WebPageRedirectModel -s src/main/avro/hbase-models/WebPageRedirectModel.avsc
 
-Replace `<ZK HOSTS>` with the comma seperated list of ZooKeeper server
-hostnames and `<ZK PORT>` with the ZooKeeper port (typically 2181). Make sure
-`HBASE_CONF_DIR` is set to the location of your HBase client configuration
-files.
+    Replace `<ZK HOSTS>` with the comma seperated list of ZooKeeper server
+    hostnames and `<ZK PORT>` with the ZooKeeper port (typically 2181). Make sure
+    `HBASE_CONF_DIR` is set to the location of your HBase client configuration
+    files.
 
-9. Grant Alice and Bob access to their columns:
+9. Grant Alice and Bob access to the public tables/columns:
 
         hbase shell
-        grant 'alice', 'RW', 'webpagesnapshots', 'content', 'alice'
         grant 'alice', 'RW', 'webpagesnapshots', 'content', 'public'
         grant 'alice', 'RW', 'webpagesnapshots', '_s'
         grant 'alice', 'RW', 'webpagesnapshots', 'meta'
         grant 'alice', 'RW', 'webpagesnapshots', 'observable'
         grant 'alice', 'RW', 'webpageredirects'
         grant 'alice', 'RW', 'managed_schemas'
-        grant 'bob', 'RW', 'webpagesnapshots', 'content', 'bob'
         grant 'bob', 'RW', 'webpagesnapshots', 'content', 'public'
         grant 'bob', 'RW', 'webpagesnapshots', '_s'
         grant 'bob', 'RW', 'webpagesnapshots', 'meta'
         grant 'bob', 'RW', 'webpagesnapshots', 'observable'
         grant 'bob', 'RW', 'webpageredirects'
         grant 'bob', 'RW', 'managed_schemas'
+        quit
+
+9. Grant Alice and Bob access to their private columns:
+
+        hbase shell
+        grant 'alice', 'RW', 'webpagesnapshots', 'content', 'alice'
+        grant 'bob', 'RW', 'webpagesnapshots', 'content', 'bob'
         quit
 
 10. Edit `~/apache-tomcat-7.0.57/conf/tomcat-users.xml` and add the following
@@ -108,8 +113,8 @@ before the `</tomcat-users>` closing tag:
         export HBASE_CONF_DIR=/etc/hbase/conf
         export CLASSPATH=${HADOOP_CONF_DIR}:${HBASE_CONF_DIR}
 
-Replace `/etc/hadoop/conf` and `/etc/hbase/conf` with your Hadoop and HBase
-configuration directories if you use another location.
+    Replace `/etc/hadoop/conf` and `/etc/hbase/conf` with your Hadoop and HBase
+    configuration directories if you use another location.
 
 11. Edit `src/main/resources/hbase-prod.properties` and set the following
 values:
@@ -119,9 +124,9 @@ values:
         application.kerberos.principal=web-page-snapshots
         application.kerberos.keytab=/home/<USER>/app.keytab
 
-Replace `<ZK HOSTS>` with the comma seperated list of ZooKeeper server
-hostnames and `<ZK PORT>` with the ZooKeeper port (typically 2181). Also
-replace `<USER>` with the username that app will be running as.
+    Replace `<ZK HOSTS>` with the comma seperated list of ZooKeeper server
+    hostnames and `<ZK PORT>` with the ZooKeeper port (typically 2181). Also
+    replace `<USER>` with the username that app will be running as.
 
 12. Add the following parameters to `hbase-site.xml` on all of the HBase nodes
 to enable user impersonation by the `web-page-snapshots` principal:
