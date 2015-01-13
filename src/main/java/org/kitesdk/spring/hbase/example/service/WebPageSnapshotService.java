@@ -15,13 +15,15 @@
  */
 package org.kitesdk.spring.hbase.example.service;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import org.jsoup.Connection;
@@ -31,8 +33,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.kitesdk.data.DatasetReader;
+import org.kitesdk.data.Datasets;
 import org.kitesdk.data.Key;
 import org.kitesdk.data.RandomAccessDataset;
+import org.kitesdk.data.spi.DefaultConfiguration;
 import org.kitesdk.spring.hbase.example.model.WebPageRedirectModel;
 import org.kitesdk.spring.hbase.example.model.WebPageSnapshotModel;
 import org.kitesdk.spring.hbase.example.model.frontend.WebPageSnapshotContent;
@@ -53,42 +57,19 @@ public class WebPageSnapshotService {
       LoggerFactory.getLogger(WebPageSnapshotService.class);
 
   @Autowired
-  private RandomAccessDataset<WebPageSnapshotModel> webPageSnapshotModels;
+  private String webPageSnapshotUri;
+
+  private final Map<String, RandomAccessDataset<WebPageSnapshotModel>>
+      webPageSnapshotModelMap = Maps.newHashMap();
 
   @Autowired
-  private RandomAccessDataset<WebPageRedirectModel> webPageRedirectModels;
+  private String webPageRedirectUri;
+
+  private final Map<String, RandomAccessDataset<WebPageRedirectModel>>
+      webPageRedirectModelMap = Maps.newHashMap();
 
   @Autowired
   private ConversionService conversionService;
-
-  @Autowired
-  private String applicationPrincipal;
-
-  @Autowired
-  private String applicationKeytab;
-
-  @Autowired
-  public void kerberosLogin() throws IOException {
-
-    LOG.debug("application.kerberos.principal=" + applicationPrincipal);
-    LOG.debug("application.kerberos.keytab=" + applicationKeytab);
-
-    if (UserGroupInformation.isSecurityEnabled()) {
-      Preconditions.checkNotNull(applicationPrincipal,
-          "Setting the application.kerberos.principal in hbase-prod.properties "
-              + "is required when security is enabled.");
-
-      Preconditions.checkNotNull(applicationKeytab,
-          "Setting the application.kerberos.keytab in hbase-prod.properties is "
-              + "required when security is enabled.");
-
-      LOG.info("Logging in user {} using keytab {}.", new Object[] {
-          applicationPrincipal, applicationKeytab });
-
-      UserGroupInformation.loginUserFromKeytab(applicationPrincipal,
-          applicationKeytab);
-    }
-  }
 
   /**
    * Take a snapshot of an URL. This WebPageSnapshot is stored in HBase. Returns
@@ -105,7 +86,7 @@ public class WebPageSnapshotService {
    * @throws IOException
    */
   public WebPageSnapshotMeta takeSnapshot(final String url, final String contentKey,
-      String user) throws IOException {
+      final String user) throws IOException {
     WebPageSnapshotMeta meta = null;
     UserGroupInformation ugi = UserGroupInformation.createProxyUser(user,
         UserGroupInformation.getLoginUser());
@@ -119,16 +100,16 @@ public class WebPageSnapshotService {
             // Url is different, so must have redirected. Store the redirect model
             WebPageRedirectModel redirectModel = WebPageRedirectModel.newBuilder()
                 .setUrl(url).setDestinationUrl(webPageSnapshotModel.getUrl()).build();
-            webPageRedirectModels.put(redirectModel);
+            webPageRedirectModels(user).put(redirectModel);
           } else {
             // If redirect exists, remove it since this URL no longer redirects
-            Key key = new Key.Builder(webPageRedirectModels).add("url", url).build();
-            WebPageRedirectModel redirectModel = webPageRedirectModels.get(key);
+            Key key = new Key.Builder(webPageRedirectModels(user)).add("url", url).build();
+            WebPageRedirectModel redirectModel = webPageRedirectModels(user).get(key);
             if (redirectModel != null) {
-              webPageRedirectModels.delete(key);
+              webPageRedirectModels(user).delete(key);
             }
           }
-          webPageSnapshotModels.put(webPageSnapshotModel);
+          webPageSnapshotModels(user).put(webPageSnapshotModel);
           return conversionService.convert(webPageSnapshotModel,
               WebPageSnapshotMeta.class);
         }
@@ -150,7 +131,7 @@ public class WebPageSnapshotService {
    * @param user The user retrieving the snapshot
    * @return The WebPageSnapshotMeta, or null if one doesn't exist for this URL.
    */
-  public WebPageSnapshotMeta getWebPageSnapshotMeta(final String url, String user)
+  public WebPageSnapshotMeta getWebPageSnapshotMeta(final String url, final String user)
       throws IOException {
     WebPageSnapshotModel model = getMostRecentWebPageSnapshot(url, user);
     if (model != null) {
@@ -171,7 +152,7 @@ public class WebPageSnapshotService {
    * at this timestamp.
    */
   public WebPageSnapshotMeta getWebPageSnapshotMeta(final String url,
-      final long ts, String user) throws IOException {
+      final long ts, final String user) throws IOException {
     WebPageSnapshotModel model = getWebPageSnapshot(url, ts, user);
     if (model != null) {
       return conversionService.convert(model, WebPageSnapshotMeta.class);
@@ -189,7 +170,7 @@ public class WebPageSnapshotService {
    * @return The list of WebPageSnapshotMeta instances.
    */
   public List<WebPageSnapshotMeta> getWebPageSnapshotMetaSince(String url,
-      long since, String user) throws IOException {
+      long since, final String user) throws IOException {
     return convertList(getWebPageSnapshotsSince(url, since, user),
         WebPageSnapshotMeta.class);
   }
@@ -202,7 +183,7 @@ public class WebPageSnapshotService {
    * URL.
    */
   public WebPageSnapshotContent getWebPageSnapshotContent(String url,
-      String user) throws IOException {
+      final String user) throws IOException {
     WebPageSnapshotModel model = getMostRecentWebPageSnapshot(url, user);
     if (model != null) {
       return conversionService.convert(model, WebPageSnapshotContent.class);
@@ -222,7 +203,7 @@ public class WebPageSnapshotService {
    * URL at this timestamp.
    */
   public WebPageSnapshotContent getWebPageSnapshotContent(String url, long ts,
-      String user) throws IOException {
+      final String user) throws IOException {
     WebPageSnapshotModel model = getWebPageSnapshot(url, ts, user);
     if (model != null) {
       return conversionService.convert(model, WebPageSnapshotContent.class);
@@ -240,7 +221,7 @@ public class WebPageSnapshotService {
    * @return The list of WebPageSnapshotContent instances.
    */
   public List<WebPageSnapshotContent> getWebPageSnapshotContentSince(
-      String url, long since, String user) throws IOException {
+      String url, long since, final String user) throws IOException {
     return convertList(getWebPageSnapshotsSince(url, since, user),
         WebPageSnapshotContent.class);
   }
@@ -251,7 +232,7 @@ public class WebPageSnapshotService {
    * @param url The URL of the page to get snapshot timestamps for
    * @return The list of timestamps
    */
-  public List<Long> getSnapshotTimestamps(String url, String user)
+  public List<Long> getSnapshotTimestamps(String url, final String user)
       throws IOException {
     List<Long> snapshotTimestamps = null;
     final String normalizedUrl = normalizeUrl(url, user);
@@ -267,7 +248,7 @@ public class WebPageSnapshotService {
         List<Long> snapshotTimestamps = new ArrayList<Long>();
         DatasetReader<WebPageSnapshotModel> reader = null;
         try {
-          reader = webPageSnapshotModels.from("url", normalizedUrl)
+          reader = webPageSnapshotModels(user).from("url", normalizedUrl)
               .from("fetchedAtRevTs", 0L).to("url", normalizedUrl)
               .to("fetchedAtRevTs", Long.MAX_VALUE).newReader();
           while (reader.hasNext()) {
@@ -293,12 +274,16 @@ public class WebPageSnapshotService {
    * URL
    */
   private WebPageSnapshotModel getMostRecentWebPageSnapshot(String url,
-      String user) throws IOException {
+      final String user) throws IOException {
     WebPageSnapshotModel snapshot = null;
     final String normalizedUrl = normalizeUrl(url, user);
 
+
     UserGroupInformation ugi = UserGroupInformation.createProxyUser(user,
         UserGroupInformation.getLoginUser());
+
+    LOG.error("Created proxy user " + ugi.getShortUserName() + " ugi: "
+      + ugi);
 
     snapshot = ugi.doAs(new PrivilegedAction<WebPageSnapshotModel>() {
 
@@ -309,7 +294,7 @@ public class WebPageSnapshotService {
           // we don't know the exact timestamp in the key, but we know since keys
           // are in timestamp descending order that the first row for an URL will be
           // the most recent.
-          reader = webPageSnapshotModels.from("url", normalizedUrl)
+          reader = webPageSnapshotModels(user).from("url", normalizedUrl)
               .from("fetchedAtRevTs", 0L).to("url", normalizedUrl)
               .to("fetchedAtRevTs", Long.MAX_VALUE).newReader();
           if (reader.hasNext()) {
@@ -338,7 +323,7 @@ public class WebPageSnapshotService {
    * URL at this timestamp.
    */
   private WebPageSnapshotModel getWebPageSnapshot(String url,
-      final long ts, String user) throws IOException {
+      final long ts, final String user) throws IOException {
     WebPageSnapshotModel snapshot = null;
     final String normalizedUrl = normalizeUrl(url, user);
 
@@ -348,9 +333,9 @@ public class WebPageSnapshotService {
 
       @Override
       public WebPageSnapshotModel run() {
-        Key key = new Key.Builder(webPageSnapshotModels).add("url", normalizedUrl)
+        Key key = new Key.Builder(webPageSnapshotModels(user)).add("url", normalizedUrl)
             .add("fetchedAtRevTs", Long.MAX_VALUE - ts).build();
-        return webPageSnapshotModels.get(key);
+        return webPageSnapshotModels(user).get(key);
       }
     });
 
@@ -366,7 +351,7 @@ public class WebPageSnapshotService {
    * since param.
    */
   private List<WebPageSnapshotModel> getWebPageSnapshotsSince(String url,
-      final long since, String user) throws IOException {
+      final long since, final String user) throws IOException {
     List<WebPageSnapshotModel> snapshots = null;
     final String normalizedUrl = normalizeUrl(url, user);
 
@@ -380,7 +365,7 @@ public class WebPageSnapshotService {
         List<WebPageSnapshotModel> models = new ArrayList<WebPageSnapshotModel>();
         DatasetReader<WebPageSnapshotModel> reader = null;
         try {
-          reader = webPageSnapshotModels.from("url", normalizedUrl)
+          reader = webPageSnapshotModels(user).from("url", normalizedUrl)
               .from("fetchedAtRevTs", 0L).to("url", normalizedUrl)
               .to("fetchedAtRevTs", since).newReader();
           while (reader.hasNext()) {
@@ -405,7 +390,7 @@ public class WebPageSnapshotService {
    * @param url The url to normalize
    * @return The normalized URL;
    */
-  private String normalizeUrl(String url, String user) throws IOException {
+  private String normalizeUrl(String url, final String user) throws IOException {
     // If this url is a redirect, get it's destination URL to fetch from our
     // HBase store since we store all snapshots under the final destination the
     // page lives at.
@@ -423,7 +408,7 @@ public class WebPageSnapshotService {
    *
    * @return The WebPageRedirectModel
    */
-  private WebPageRedirectModel getRedirect(final String url, String user) throws IOException {
+  private WebPageRedirectModel getRedirect(final String url, final String user) throws IOException {
     UserGroupInformation ugi = UserGroupInformation.createProxyUser(user,
         UserGroupInformation.getLoginUser());
 
@@ -431,8 +416,8 @@ public class WebPageSnapshotService {
 
       @Override
       public WebPageRedirectModel run() {
-        Key key = new Key.Builder(webPageRedirectModels).add("url", url).build();
-        return webPageRedirectModels.get(key);
+        Key key = new Key.Builder(webPageRedirectModels(user)).add("url", url).build();
+        return webPageRedirectModels(user).get(key);
       }
     });
   }
@@ -530,5 +515,37 @@ public class WebPageSnapshotService {
       returnList.add(conversionService.convert(o, clazz));
     }
     return returnList;
+  }
+
+  private synchronized RandomAccessDataset<WebPageSnapshotModel> webPageSnapshotModels(String user) {
+    RandomAccessDataset<WebPageSnapshotModel> dataset =
+        webPageSnapshotModelMap.get(user);
+
+    if (dataset == null) {
+      Configuration conf = new Configuration(DefaultConfiguration.get());
+      conf.set("hbase.client.instance.id", user);
+      DefaultConfiguration.set(conf);
+
+      dataset = Datasets.load(webPageSnapshotUri, WebPageSnapshotModel.class);
+      webPageSnapshotModelMap.put(user, dataset);
+    }
+
+    return dataset;
+  }
+
+  private synchronized RandomAccessDataset<WebPageRedirectModel> webPageRedirectModels(String user) {
+    RandomAccessDataset<WebPageRedirectModel> dataset =
+        webPageRedirectModelMap.get(user);
+
+    if (dataset == null) {
+      Configuration conf = new Configuration(DefaultConfiguration.get());
+      conf.set("hbase.client.instance.id", user);
+      DefaultConfiguration.set(conf);
+
+      dataset = Datasets.load(webPageRedirectUri, WebPageRedirectModel.class);
+      webPageRedirectModelMap.put(user, dataset);
+    }
+
+    return dataset;
   }
 }

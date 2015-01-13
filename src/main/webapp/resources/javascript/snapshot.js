@@ -160,9 +160,12 @@ SNAPSHOT = {
 			var ajaxURL = "/mostRecentContent?url=" + url;
 		}
 		$.getJSON( ajaxURL, function(data){
-			if( data != null  && typeof data.content != "undefined" ){
+			if( data != null && data.content != null && typeof data.content != "undefined" ){
 				var contentWithBaseSet = data.content.replace( "<head>", "<head><base href='" + url +"' target='_blank'></base>")
 				document.getElementById("iframeContent").contentWindow.document.write(contentWithBaseSet);
+			} else if ( data != null && data.content == null) {
+				var content = "<div class=\"errorMsg\">Insufficient privilleges to view snapshot</div>";
+				document.getElementById("iframeContent").contentWindow.document.write(content);
 			}
 			$(".container").show();
 			$("#tsContainer").show();

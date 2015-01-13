@@ -8,20 +8,22 @@
   <import resource="classpath:/spring/openshiftProfileApplicationContext.xml" />
   <import resource="classpath:/spring/prodProfileApplicationContext.xml" />
 
-  <bean id="webPageSnapshotModels" class="org.kitesdk.data.Datasets"
-    factory-method="load" depends-on="hbasePropertyConfigurer">
+  <bean id="kerberosLogin" class="org.kitesdk.spring.hbase.example.service.KerberosLoginService"
+    depends-on="hbasePropertyConfigurer">
+    <constructor-arg index="0" value="${application.kerberos.principal}"/>
+    <constructor-arg index="1" value="${application.kerberos.keytab}"/>
+  </bean>
+
+  <bean id="webPageSnapshotUri" class="java.lang.String"
+        depends-on="kerberosLogin,hbasePropertyConfigurer">
     <constructor-arg index="0"
       value="dataset:hbase:${hbase.zk.host}:${hbase.zk.port}/webpagesnapshots.WebPageSnapshotModel" />
-    <constructor-arg index="1"
-      value="org.kitesdk.spring.hbase.example.model.WebPageSnapshotModel" />
   </bean>
-  
-  <bean id="webPageRedirectModels" class="org.kitesdk.data.Datasets"
-    factory-method="load" depends-on="hbasePropertyConfigurer">
+
+  <bean id="webPageRedirectUri" class="java.lang.String"
+        depends-on="kerberosLogin,hbasePropertyConfigurer">
     <constructor-arg index="0"
       value="dataset:hbase:${hbase.zk.host}:${hbase.zk.port}/webpageredirects.WebPageRedirectModel" />
-    <constructor-arg index="1"
-      value="org.kitesdk.spring.hbase.example.model.WebPageRedirectModel" />
   </bean>
 
   <bean id="conversionService"
@@ -36,13 +38,4 @@
     </property>
   </bean>
 
-  <bean id="applicationPrincipal" class="java.lang.String"
-        depends-on="hbasePropertyConfigurer">
-    <constructor-arg index="0" value="${application.kerberos.principal}"/>
-  </bean>
-
-  <bean id="applicationKeytab" class="java.lang.String"
-        depends-on="hbasePropertyConfigurer">
-    <constructor-arg index="0" value="${application.kerberos.keytab}"/>
-  </bean>
 </beans>
