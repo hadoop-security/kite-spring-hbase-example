@@ -92,20 +92,20 @@ the app.
         grant 'bob', 'RW', 'managed_schemas'
         quit
 
-9. Grant Alice and Bob access to their private columns:
+10. Grant Alice and Bob access to their private columns:
 
         hbase shell
         grant 'alice', 'RW', 'webpagesnapshots', 'content', 'alice'
         grant 'bob', 'RW', 'webpagesnapshots', 'content', 'bob'
         quit
 
-10. Edit `~/apache-tomcat-7.0.57/conf/tomcat-users.xml` and add the following
+11. Edit `~/apache-tomcat-7.0.57/conf/tomcat-users.xml` and add the following
 before the `</tomcat-users>` closing tag:
 
           <user name="alice" password="secret" roles="user" />
           <user name="bob"  password="secret" roles="user"  />
 
-10. Create `~/apache-tomcat-7.0.57/bin/setenv.sh` with the following content:
+12. Create `~/apache-tomcat-7.0.57/bin/setenv.sh` with the following content:
 
         #!/bin/bash
         
@@ -116,7 +116,7 @@ before the `</tomcat-users>` closing tag:
     Replace `/etc/hadoop/conf` and `/etc/hbase/conf` with your Hadoop and HBase
     configuration directories if you use another location.
 
-11. Edit `src/main/resources/hbase-prod.properties` and set the following
+13. Edit `src/main/resources/hbase-prod.properties` and set the following
 values:
 
         hbase.zk.host=<ZK HOSTS>
@@ -128,7 +128,7 @@ values:
     hostnames and `<ZK PORT>` with the ZooKeeper port (typically 2181). Also
     replace `<USER>` with the username that app will be running as.
 
-12. Add the following parameters to `hbase-site.xml` on all of the HBase nodes
+14. Add the following parameters to `hbase-site.xml` on all of the HBase nodes
 to enable user impersonation by the `web-page-snapshots` principal:
 
         <property>
@@ -139,6 +139,8 @@ to enable user impersonation by the `web-page-snapshots` principal:
           <name>hadoop.proxyuser.web-page-snapshots.hosts</name>
           <value>*</value>
         </property>
+
+15. Restart HBase
 
 Building
 =========================
