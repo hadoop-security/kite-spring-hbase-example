@@ -58,7 +58,7 @@ cluster with the necessary security settings. In particular, you need to:
 the app.
 7. Grant the application principal create table permissions:
 
-	kinit hbase
+        kinit hbase
         hbase shell
         grant 'web-page-snapshots', 'RWXCA'
         quit
